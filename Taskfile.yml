@@ -238,7 +238,7 @@ tasks:
         
         echo ""
         echo "Running structure tests..."
-        if uv run python -m pytest tests/$KMOM/ -q -k "structure"; then
+        if uv run tester tests/$KMOM/ -t struct; then
           echo "✅ Structure tests passed"
         else
           echo "❌ Structure tests failed"
@@ -247,7 +247,7 @@ tasks:
         
         echo ""
         echo "Running all tests..."
-        if uv run python -m pytest tests/$KMOM/ -q; then
+        if uv run tester tests/$KMOM/; then
           echo "✅ All tests passed"
         else
           echo "❌ Some tests failed"
