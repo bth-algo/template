@@ -168,7 +168,9 @@ tasks:
         else
           echo "Creating new branch '$KMOM' from '$SOURCE_BRANCH'..."
           git checkout -b $KMOM $SOURCE_BRANCH
+          git push --set-upstream origin $KMOM
           echo "✅ Branch '$KMOM' created and checked out."
+
         fi
         echo ""
         echo "Next steps:"
