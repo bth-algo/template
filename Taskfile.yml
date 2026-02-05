@@ -434,10 +434,10 @@ tasks:
       - echo ""
       - echo "✅ Setup complete!"
       - echo ""
-      - echo "Next steps{{":"}}
-      - echo "  1. Start your first assignment{{":"}} task start-kmom -- kmom01"
-      - echo "  2. Implement your code in src/kmom01/"
-      - echo "  3. Run tests{{":"}} task test -- kmom01"
+      - echo 'Next steps{{":"}}'
+      - echo '  1. Start your first assignment{{":"}} task start-kmom -- kmom01'
+      - echo '  2. Implement your code in src/kmom01/'
+      - echo '  3. Run tests{{":"}} task test -- kmom01'
 
   help:
     desc: "Show detailed help for common workflow commands"

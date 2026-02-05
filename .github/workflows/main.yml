@@ -1,5 +1,4 @@
 name: Main Entry Workflow
-run-name: "Validate and test code"
 
 on:
   pull_request:
@@ -11,8 +10,6 @@ on:
     tags:
       - 'v[1-6]\.[0-9]+\.[0-9]+'
       - 'v10\.[0-9]+\.[0-9]+'
-  issue_comment:
-    types: [created]
   workflow_dispatch:
 
 jobs:
@@ -28,8 +25,9 @@ jobs:
           echo "event.action: ${{ github.event.action || '' }}"
           echo "review_state: ${{ github.event.review.state || '' }}"
   #       echo "event: ${{ toJson(github.event) }}"
+
   call-decider:
-    uses: bth-python/utils/.github/workflows/decider.yml@dev
+    uses: bth-python/utils/.github/workflows/decider.yml@main
     with:
       course_id: ${{ vars.COURSE_ID }}
       available_assignments: ${{ vars.ASSIGNMENTS }}
