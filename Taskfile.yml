@@ -109,3 +109,365 @@ tasks:
         [ -f pyproject.toml ] && echo "✅ pyproject.toml file found!" || { echo "❌ Error: pyproject.toml file not found!"; exit 1; }
         [ -f ruff.toml ] && echo "✅ ruff.toml file found!" || { echo "❌ Error: ruff.toml file not found!"; exit 1; }
         [ -f uv.lock ] && echo "✅ uv.lock file found!" || { echo "❌ Error: uv.lock file not found!"; exit 1; }
+
+
+  # ==========================================
+  # Testing Commands
+  # ==========================================
+
+  test:
+    desc: "Run tests for a specific assignment. Usage: 'task test -- kmom01' or 'task test' (runs all tests)"
+    cmds:
+      - |
+        if [ -n "{{.CLI_ARGS}}" ]; then
+          echo "Running tests for {{.CLI_ARGS}}..."
+          uv run python -m pytest tests/{{.CLI_ARGS}}/ -v
+        else
+          echo "Running all tests..."
+          uv run python -m pytest tests/ -v
+        fi
+
+  test-struct:
+    desc: "Run only structure tests for a specific assignment. Usage: 'task test-struct -- kmom01'"
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "❌ Error: Please specify an assignment. Usage: task test-struct -- kmom01"
+          exit 1
+        fi
+        echo "Running structure tests for {{.CLI_ARGS}}..."
+        uv run python -m pytest tests/{{.CLI_ARGS}}/ -v -k "structure"
+
+  test-extra:
+    desc: "Run only extra tests for a specific assignment. Usage: 'task test-extra -- kmom01'"
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "❌ Error: Please specify an assignment. Usage: task test-extra -- kmom01"
+          exit 1
+        fi
+        echo "Running extra tests for {{.CLI_ARGS}}..."
+        uv run python -m pytest tests/{{.CLI_ARGS}}/ -v -k "extra"
+
+  test-tag:
+    desc: "Run tests with a specific tag. Usage: 'task test-tag -- kmom01 tag_name'"
+    cmds:
+      - |
+        ARGS="{{.CLI_ARGS}}"
+        if [ -z "$ARGS" ]; then
+          echo "❌ Error: Please specify assignment and tag. Usage: task test-tag -- kmom01 tag_name"
+          exit 1
+        fi
+        KMOM=$(echo $ARGS | awk '{print $1}')
+        TAG=$(echo $ARGS | awk '{print $2}')
+        if [ -z "$TAG" ]; then
+          echo "❌ Error: Please specify a tag. Usage: task test-tag -- kmom01 tag_name"
+          exit 1
+        fi
+        echo "Running tests for $KMOM with tag: $TAG..."
+        uv run python -m pytest tests/$KMOM/ -v -m "$TAG"
+
+  test-quick:
+    desc: "Run tests without verbose output (faster). Usage: 'task test-quick -- kmom01'"
+    cmds:
+      - |
+        if [ -n "{{.CLI_ARGS}}" ]; then
+          echo "Running quick tests for {{.CLI_ARGS}}..."
+          uv run python -m pytest tests/{{.CLI_ARGS}}/ -q
+        else
+          echo "Running all tests (quick mode)..."
+          uv run python -m pytest tests/ -q
+        fi
+
+
+  # ==========================================
+  # Linting Commands
+  # ==========================================
+
+  lint:
+    desc: "Check code with Ruff linter (no fixes applied)"
+    cmds:
+      - echo "Running Ruff linter on src/..."
+      - uv run ruff check src/
+
+  lint-all:
+    desc: "Check all Python files with Ruff linter (including tests)"
+    cmds:
+      - echo "Running Ruff linter on all Python files..."
+      - uv run ruff check .
+
+  format-check:
+    desc: "Check code formatting with Ruff (no changes applied)"
+    cmds:
+      - echo "Checking code formatting..."
+      - uv run ruff format --check src/
+
+  format:
+    desc: "Format code with Ruff (WARNING: modifies files)"
+    prompt: "This will modify your source files to fix formatting. Continue?"
+    cmds:
+      - echo "Formatting code with Ruff..."
+      - uv run ruff format src/
+      - echo "✅ Code formatted successfully."
+
+
+  # ==========================================
+  # Branch Workflow Commands
+  # ==========================================
+
+  start-kmom:
+    desc: "Start a new assignment by creating a branch. Usage: 'task start-kmom -- kmom02'"
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "❌ Error: Please specify an assignment. Usage: task start-kmom -- kmom02"
+          exit 1
+        fi
+        KMOM="{{.CLI_ARGS}}"
+        CURRENT_BRANCH=$(git branch --show-current)
+        echo "Current branch: $CURRENT_BRANCH"
+        
+        # Extract kmom number
+        KMOM_NUM=$(echo $KMOM | grep -o '[0-9]\+')
+        
+        # Determine source branch
+        if [ "$KMOM_NUM" = "01" ]; then
+          SOURCE_BRANCH="main"
+        else
+          PREV_NUM=$(printf "%02d" $((10#$KMOM_NUM - 1)))
+          SOURCE_BRANCH="kmom$PREV_NUM"
+        fi
+        
+        # Check if branch already exists
+        if git show-ref --verify --quiet refs/heads/$KMOM; then
+          echo "⚠️  Branch '$KMOM' already exists. Switching to it..."
+          git checkout $KMOM
+        else
+          echo "Creating new branch '$KMOM' from '$SOURCE_BRANCH'..."
+          git checkout -b $KMOM $SOURCE_BRANCH
+          echo "✅ Branch '$KMOM' created and checked out."
+        fi
+        echo ""
+        echo "Next steps:"
+        echo "  1. Create your implementation in src/$KMOM/"
+        echo "  2. Run tests: task test -- $KMOM"
+        echo "  3. Check linting: task lint"
+        echo "  4. Commit and push your changes"
+
+  switch-kmom:
+    desc: "Switch to an assignment branch. Usage: 'task switch-kmom -- kmom01'"
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "❌ Error: Please specify an assignment. Usage: task switch-kmom -- kmom01"
+          exit 1
+        fi
+        KMOM="{{.CLI_ARGS}}"
+        if git show-ref --verify --quiet refs/heads/$KMOM; then
+          echo "Switching to branch '$KMOM'..."
+          git checkout $KMOM
+        else
+          echo "❌ Error: Branch '$KMOM' does not exist. Create it with: task start-kmom -- $KMOM"
+          exit 1
+        fi
+
+  branches:
+    desc: "List all assignment branches"
+    cmds:
+      - |
+        echo "Assignment branches:"
+        git branch | grep -E 'kmom[0-9]+' || echo "No assignment branches found."
+        echo ""
+        echo "Current branch: $(git branch --show-current)"
+
+
+  # ==========================================
+  # Submission Commands
+  # ==========================================
+
+  check-ready:
+    desc: "Check if assignment is ready for submission. Usage: 'task check-ready -- kmom01'"
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "❌ Error: Please specify an assignment. Usage: task check-ready -- kmom01"
+          exit 1
+        fi
+        KMOM="{{.CLI_ARGS}}"
+        echo "Checking readiness for $KMOM..."
+        echo ""
+        
+        # Check if on correct branch
+        CURRENT_BRANCH=$(git branch --show-current)
+        if [ "$CURRENT_BRANCH" != "$KMOM" ]; then
+          echo "⚠️  Warning: You are on branch '$CURRENT_BRANCH', not '$KMOM'"
+        else
+          echo "✅ On correct branch: $KMOM"
+        fi
+        
+        # Check for uncommitted changes
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "⚠️  Warning: You have uncommitted changes"
+          git status --short
+        else
+          echo "✅ No uncommitted changes"
+        fi
+        
+        echo ""
+        echo "Running structure tests..."
+        if uv run python -m pytest tests/$KMOM/ -q -k "structure"; then
+          echo "✅ Structure tests passed"
+        else
+          echo "❌ Structure tests failed"
+          exit 1
+        fi
+        
+        echo ""
+        echo "Running all tests..."
+        if uv run python -m pytest tests/$KMOM/ -q; then
+          echo "✅ All tests passed"
+        else
+          echo "❌ Some tests failed"
+          exit 1
+        fi
+        
+        echo ""
+        echo "Checking code with Ruff..."
+        if uv run ruff check src/$KMOM/; then
+          echo "✅ Ruff checks passed"
+        else
+          echo "❌ Ruff found issues"
+          exit 1
+        fi
+        
+        echo ""
+        echo "🎉 $KMOM is ready for submission!"
+
+  tag-version:
+    desc: "Create a version tag for assignment. Usage: 'task tag-version -- kmom01 1.0.0'"
+    cmds:
+      - |
+        ARGS="{{.CLI_ARGS}}"
+        if [ -z "$ARGS" ]; then
+          echo "❌ Error: Please specify assignment and version. Usage: task tag-version -- kmom01 1.0.0"
+          exit 1
+        fi
+        KMOM=$(echo $ARGS | awk '{print $1}')
+        VERSION=$(echo $ARGS | awk '{print $2}')
+        if [ -z "$VERSION" ]; then
+          echo "❌ Error: Please specify a version. Usage: task tag-version -- kmom01 1.0.0"
+          exit 1
+        fi
+        
+        # Extract kmom number
+        KMOM_NUM=$(echo $KMOM | grep -o '[0-9]\+')
+        TAG="v${KMOM_NUM}.${VERSION}"
+        
+        echo "Creating tag '$TAG' for $KMOM..."
+        git tag -a "$TAG" -m "Release $KMOM version $VERSION"
+        echo "✅ Tag '$TAG' created."
+        echo ""
+        echo "To push the tag to remote, run:"
+        echo "  git push origin $TAG"
+
+
+  # ==========================================
+  # Workflow Helper Commands
+  # ==========================================
+
+  status:
+    desc: "Show current assignment status and context"
+    cmds:
+      - |
+        echo "======================================"
+        echo "Assignment Status"
+        echo "======================================"
+        echo ""
+        CURRENT_BRANCH=$(git branch --show-current)
+        echo "📍 Current branch: $CURRENT_BRANCH"
+        
+        # Check if on assignment branch
+        if echo "$CURRENT_BRANCH" | grep -q "kmom"; then
+          KMOM=$CURRENT_BRANCH
+          echo "📝 Working on: $KMOM"
+          
+          # Check for src directory
+          if [ -d "src/$KMOM" ]; then
+            echo "📁 Source directory: src/$KMOM"
+            FILE_COUNT=$(find src/$KMOM -name "*.py" -type f 2>/dev/null | wc -l)
+            echo "   Python files: $FILE_COUNT"
+          else
+            echo "⚠️  Source directory src/$KMOM does not exist"
+          fi
+          
+          # Check for uncommitted changes
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "⚠️  Uncommitted changes present"
+          else
+            echo "✅ No uncommitted changes"
+          fi
+        else
+          echo "ℹ️  Not on an assignment branch"
+        fi
+        
+        echo ""
+        echo "Available assignments:"
+        git branch | grep -E 'kmom[0-9]+' | sed 's/^/  /' || echo "  No assignment branches found"
+        
+        echo ""
+        echo "Next steps:"
+        echo "  • Start new assignment: task start-kmom -- kmom0X"
+        echo "  • Run tests: task test -- kmom0X"
+        echo "  • Check linting: task lint"
+        echo "  • Check readiness: task check-ready -- kmom0X"
+
+  setup:
+    desc: "Initial setup - run all configuration downloads"
+    cmds:
+      - echo "Running initial setup..."
+      - task: create-src-dirs
+      - task: download-tests
+      - task: download-ruff-config
+      - task: download-workflow
+      - task: download-extensions
+      - task: check-have-files
+      - echo ""
+      - echo "✅ Setup complete!"
+      - echo ""
+      - echo "Next steps{{":"}}
+      - echo "  1. Start your first assignment{{":"}} task start-kmom -- kmom01"
+      - echo "  2. Implement your code in src/kmom01/"
+      - echo "  3. Run tests{{":"}} task test -- kmom01"
+
+  help:
+    desc: "Show detailed help for common workflow commands"
+    cmds:
+      - |
+        echo "======================================"
+        echo "Student Workflow Help"
+        echo "======================================"
+        echo ""
+        echo "🚀 Getting Started:"
+        echo "  task setup              - Initial setup (run once)"
+        echo "  task start-kmom -- kmom01 - Start first assignment"
+        echo ""
+        echo "📝 Development:"
+        echo "  task test -- kmom01     - Run tests for assignment"
+        echo "  task test-struct -- kmom01 - Run only structure tests"
+        echo "  task lint               - Check code quality"
+        echo "  task format-check       - Check code formatting"
+        echo ""
+        echo "🔀 Branch Management:"
+        echo "  task switch-kmom -- kmom01 - Switch to assignment branch"
+        echo "  task branches           - List all assignment branches"
+        echo "  task status             - Show current status"
+        echo ""
+        echo "✅ Submission:"
+        echo "  task check-ready -- kmom01 - Verify assignment is ready"
+        echo "  task tag-version -- kmom01 1.0.0 - Create version tag"
+        echo ""
+        echo "📥 Updates:"
+        echo "  task download-tests     - Update test files"
+        echo "  task download-ruff-config - Update linting config"
+        echo ""
+        echo "For more details, run: task --list"
