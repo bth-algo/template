@@ -12,8 +12,8 @@ uv run task setup
 uv run task start-kmom -- kmom01
 
 # Develop and test
-uv run task test -- kmom01
-uv run task lint
+uv run tester tests/kmom01
+uv run ruff check src/kmom01
 
 # Check readiness and submit
 uv run task check-ready -- kmom01
