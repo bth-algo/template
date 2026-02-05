@@ -146,6 +146,23 @@ tasks:
           echo "❌ Error: Please specify an assignment. Usage: task start-kmom -- kmom02"
           exit 1
         fi
+        
+        # Check for uncommitted changes
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "❌ Error: You have uncommitted changes. Please commit or remove them before creating a new branch."
+          echo ""
+          echo "Uncommitted changes:"
+          git status --short
+          echo ""
+          echo "To commit your changes:"
+          echo "  git add <files>"
+          echo "  git commit -m \"Your commit message\""
+          echo ""
+          echo "Or delete all of them with:"
+          echo "  git checkout ."
+          exit 1
+        fi
+        
         KMOM="{{.CLI_ARGS}}"
         CURRENT_BRANCH=$(git branch --show-current)
         echo "Current branch: $CURRENT_BRANCH"
@@ -187,6 +204,22 @@ tasks:
           echo "❌ Error: Please specify an assignment. Usage: task switch-kmom -- kmom01"
           exit 1
         fi
+
+        # Check for uncommitted changes
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "❌ Error: You have uncommitted changes. Please commit or remove them before creating a new branch."
+          echo ""
+          echo "Uncommitted changes:"
+          git status --short
+          echo ""
+          echo "To commit your changes:"
+          echo "  git add <files>"
+          echo "  git commit -m \"Your commit message\""
+          echo ""
+          echo "Or remove them"
+          exit 1
+        fi
+
         KMOM="{{.CLI_ARGS}}"
         if git show-ref --verify --quiet refs/heads/$KMOM; then
           echo "Switching to branch '$KMOM'..."
