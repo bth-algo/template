@@ -36,7 +36,7 @@ if convert_type == "p":
     taxrate = 0.2
     final_price = round((value_to_convert - discount) * (1 + taxrate), 2)
     print_str = (
-        f"The final price of {value_to_convert} after 10kr discount"
+        f"The final price  of {value_to_convert} after 10kr discount"
         f" and 20% tax is: {final_price} kr"
     )
 
