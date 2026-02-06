@@ -116,99 +116,22 @@ tasks:
   # ==========================================
 
   test:
-    desc: "Run tests for a specific assignment. Usage: 'task test -- kmom01' or 'task test' (runs all tests)"
+    desc: "Run tests for a specific assignment. Usage: 'task test -- kmom01' or 'kmom01/convert' to run specific tests"
     cmds:
       - |
-        if [ -n "{{.CLI_ARGS}}" ]; then
-          echo "Running tests for {{.CLI_ARGS}}..."
-          uv run python -m pytest tests/{{.CLI_ARGS}}/ -v
-        else
-          echo "Running all tests..."
-          uv run python -m pytest tests/ -v
-        fi
-
-  test-struct:
-    desc: "Run only structure tests for a specific assignment. Usage: 'task test-struct -- kmom01'"
-    cmds:
-      - |
-        if [ -z "{{.CLI_ARGS}}" ]; then
-          echo "❌ Error: Please specify an assignment. Usage: task test-struct -- kmom01"
-          exit 1
-        fi
-        echo "Running structure tests for {{.CLI_ARGS}}..."
-        uv run python -m pytest tests/{{.CLI_ARGS}}/ -v -k "structure"
-
-  test-extra:
-    desc: "Run only extra tests for a specific assignment. Usage: 'task test-extra -- kmom01'"
-    cmds:
-      - |
-        if [ -z "{{.CLI_ARGS}}" ]; then
-          echo "❌ Error: Please specify an assignment. Usage: task test-extra -- kmom01"
-          exit 1
-        fi
-        echo "Running extra tests for {{.CLI_ARGS}}..."
-        uv run python -m pytest tests/{{.CLI_ARGS}}/ -v -k "extra"
-
-  test-tag:
-    desc: "Run tests with a specific tag. Usage: 'task test-tag -- kmom01 tag_name'"
-    cmds:
-      - |
-        ARGS="{{.CLI_ARGS}}"
-        if [ -z "$ARGS" ]; then
-          echo "❌ Error: Please specify assignment and tag. Usage: task test-tag -- kmom01 tag_name"
-          exit 1
-        fi
-        KMOM=$(echo $ARGS | awk '{print $1}')
-        TAG=$(echo $ARGS | awk '{print $2}')
-        if [ -z "$TAG" ]; then
-          echo "❌ Error: Please specify a tag. Usage: task test-tag -- kmom01 tag_name"
-          exit 1
-        fi
-        echo "Running tests for $KMOM with tag: $TAG..."
-        uv run python -m pytest tests/$KMOM/ -v -m "$TAG"
-
-  test-quick:
-    desc: "Run tests without verbose output (faster). Usage: 'task test-quick -- kmom01'"
-    cmds:
-      - |
-        if [ -n "{{.CLI_ARGS}}" ]; then
-          echo "Running quick tests for {{.CLI_ARGS}}..."
-          uv run python -m pytest tests/{{.CLI_ARGS}}/ -q
-        else
-          echo "Running all tests (quick mode)..."
-          uv run python -m pytest tests/ -q
-        fi
+        echo "Run tests with the 'uv run tester' command. Use 'uv run tester -h' for more options."
 
 
-  # ==========================================
-  # Linting Commands
-  # ==========================================
+  # # ==========================================
+  # # Linting Commands  tror inte jag vill ha dessa i Taskfile, de kan köras direkt med uv run ruff check src/ eller liknande
+  # # ==========================================
 
-  lint:
-    desc: "Check code with Ruff linter (no fixes applied)"
-    cmds:
-      - echo "Running Ruff linter on src/..."
-      - uv run ruff check src/
+  # lint:
+  #   desc: "Check code with Ruff linter (no fixes applied)"
+  #   cmds:
+  #     - echo "Running Ruff linter on src/..."
+  #     - uv run ruff check src/
 
-  lint-all:
-    desc: "Check all Python files with Ruff linter (including tests)"
-    cmds:
-      - echo "Running Ruff linter on all Python files..."
-      - uv run ruff check .
-
-  format-check:
-    desc: "Check code formatting with Ruff (no changes applied)"
-    cmds:
-      - echo "Checking code formatting..."
-      - uv run ruff format --check src/
-
-  format:
-    desc: "Format code with Ruff (WARNING: modifies files)"
-    prompt: "This will modify your source files to fix formatting. Continue?"
-    cmds:
-      - echo "Formatting code with Ruff..."
-      - uv run ruff format src/
-      - echo "✅ Code formatted successfully."
 
 
   # ==========================================
@@ -223,6 +146,22 @@ tasks:
           echo "❌ Error: Please specify an assignment. Usage: task start-kmom -- kmom02"
           exit 1
         fi
+        
+        # Check for uncommitted changes
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "❌ Error: You have uncommitted changes. Please commit or remove them before creating a new branch."
+          echo ""
+          echo "Uncommitted changes:"
+          git status --short
+          echo ""
+          echo "To commit your changes:"
+          echo "  git add <files>"
+          echo "  git commit -m \"Your commit message\""
+          echo ""
+          echo "Or delete them if you don't need them"
+          exit 1
+        fi
+        
         KMOM="{{.CLI_ARGS}}"
         CURRENT_BRANCH=$(git branch --show-current)
         echo "Current branch: $CURRENT_BRANCH"
@@ -245,7 +184,9 @@ tasks:
         else
           echo "Creating new branch '$KMOM' from '$SOURCE_BRANCH'..."
           git checkout -b $KMOM $SOURCE_BRANCH
+          git push --set-upstream origin $KMOM
           echo "✅ Branch '$KMOM' created and checked out."
+
         fi
         echo ""
         echo "Next steps:"
@@ -262,6 +203,22 @@ tasks:
           echo "❌ Error: Please specify an assignment. Usage: task switch-kmom -- kmom01"
           exit 1
         fi
+
+        # Check for uncommitted changes
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "❌ Error: You have uncommitted changes. Please commit or remove them before creating a new branch."
+          echo ""
+          echo "Uncommitted changes:"
+          git status --short
+          echo ""
+          echo "To commit your changes:"
+          echo "  git add <files>"
+          echo "  git commit -m \"Your commit message\""
+          echo ""
+          echo "Or delete them if you don't need them"
+          exit 1
+        fi
+
         KMOM="{{.CLI_ARGS}}"
         if git show-ref --verify --quiet refs/heads/$KMOM; then
           echo "Switching to branch '$KMOM'..."
@@ -270,6 +227,8 @@ tasks:
           echo "❌ Error: Branch '$KMOM' does not exist. Create it with: task start-kmom -- $KMOM"
           exit 1
         fi
+
+        echo "Lägg till länk eller text som påminner om att de ska testa, pusha och annat om de går till en tidigare branch för att fixa komplettering." # todo
 
   branches:
     desc: "List all assignment branches"
@@ -315,7 +274,7 @@ tasks:
         
         echo ""
         echo "Running structure tests..."
-        if uv run python -m pytest tests/$KMOM/ -q -k "structure"; then
+        if uv run tester tests/$KMOM/ -t struct; then
           echo "✅ Structure tests passed"
         else
           echo "❌ Structure tests failed"
@@ -324,7 +283,7 @@ tasks:
         
         echo ""
         echo "Running all tests..."
-        if uv run python -m pytest tests/$KMOM/ -q; then
+        if uv run tester tests/$KMOM/; then
           echo "✅ All tests passed"
         else
           echo "❌ Some tests failed"
