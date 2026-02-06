@@ -116,7 +116,7 @@ tasks:
   # ==========================================
 
   test:
-    desc: "Run tests for a specific assignment. Usage: 'task test -- tests/kmom01' or 'testskmom01/convert' to run specific tests"
+    desc: "Run tests for a specific assignment. Usage: 'task test -- tests/kmom01' or 'tests/kmom01/convert' to run specific tests"
     cmds:
       - |
         echo "Run tests with the 'uv run tester' command. Use 'uv run tester -h' for more options."
