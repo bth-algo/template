@@ -13,3 +13,12 @@ Jag tror man slipper det problemet om man gör PR mot föregående branch istäl
 TESTA I GITHUB ATT SKAPA BRANCHES, GÖR ÄNDRINGAR, SKAPA pr OCH MERGA. TESTA SKAPA BRANCHES FRÅN MAIN, ANDRA BRANCHES OCH SEN MERGA MOT MAIN OCH MOT ANDRA BRANCHES. kOLLA i copilot på det flödes diagrammen som finns som visar de olika arbetssäten.
 
 lokalt i repot nu har jag kvar att göra klart kmom02 efter att jag fixade en Ux i kmom01 och har nu hoppat tillbaka till kmom02. Så nu finns en ändring i kmom01 som inte finns i kmom02.
+
+
+
+Om studs kör på fler datorer och byter till annan. då följer inte branches med. Kan laddas ner med
+```
+git fetch --all
+git branch -r | grep -v '\->' | while read remote; do git branch --track "${remote#origin/}" "$remote" 2>/dev/null || true; done
+git pull --all
+```
