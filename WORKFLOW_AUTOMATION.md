@@ -270,7 +270,7 @@ uv run task check-ready -- kmom01
 # 8. Commit and push
 git add src/kmom01/
 git commit -m "Complete kmom01 assignment"
-git push origin kmom01
+git push
 
 # 9. Create pull request on GitHub
 # ... create PR ...
@@ -314,7 +314,7 @@ uv run task test -- kmom01
 # 4. Commit and push
 git add src/kmom01/
 git commit -m "Fix kmom01 issues"
-git push origin kmom01
+git push
 
 # 5. Return to current assignment
 uv run task switch-kmom -- kmom02

@@ -158,8 +158,7 @@ tasks:
           echo "  git add <files>"
           echo "  git commit -m \"Your commit message\""
           echo ""
-          echo "Or delete all of them with:"
-          echo "  git checkout ."
+          echo "Or delete them if you don't need them"
           exit 1
         fi
         
@@ -216,7 +215,7 @@ tasks:
           echo "  git add <files>"
           echo "  git commit -m \"Your commit message\""
           echo ""
-          echo "Or remove them"
+          echo "Or delete them if you don't need them"
           exit 1
         fi
 
@@ -228,6 +227,8 @@ tasks:
           echo "❌ Error: Branch '$KMOM' does not exist. Create it with: task start-kmom -- $KMOM"
           exit 1
         fi
+
+        echo "Lägg till länk eller text som påminner om att de ska testa, pusha och annat om de går till en tidigare branch för att fixa komplettering." # todo
 
   branches:
     desc: "List all assignment branches"
