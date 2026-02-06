@@ -116,7 +116,7 @@ tasks:
   # ==========================================
 
   test:
-    desc: "Run tests for a specific assignment. Usage: 'task test -- kmom01' or 'kmom01/convert' to run specific tests"
+    desc: "Run tests for a specific assignment. Usage: 'task test -- tests/kmom01' or 'testskmom01/convert' to run specific tests"
     cmds:
       - |
         echo "Run tests with the 'uv run tester' command. Use 'uv run tester -h' for more options."
@@ -167,14 +167,15 @@ tasks:
         CURRENT_BRANCH=$(git branch --show-current)
         echo "Current branch: $CURRENT_BRANCH"
         
-        # Extract kmom number
-        KMOM_NUM=$(echo $KMOM | grep -o '[0-9]\+')
+        # Extract kmom number and strip leading zeros for arithmetic
+        KMOM_NUM=$(echo $KMOM | grep -o '[0-9]\+' | sed 's/^0*//')
+        [ -z "$KMOM_NUM" ] && KMOM_NUM=0
         
         # Determine source branch
-        if [ "$KMOM_NUM" = "01" ]; then
+        if [ "$KMOM_NUM" -eq 1 ]; then
           SOURCE_BRANCH="main"
         else
-          PREV_NUM=$(printf "%02d" $((10#$KMOM_NUM - 1)))
+          PREV_NUM=$(printf "%02d" $((KMOM_NUM - 1)))
           SOURCE_BRANCH="kmom$PREV_NUM"
         fi
         
@@ -185,7 +186,7 @@ tasks:
         else
           echo "Creating new branch '$KMOM' from '$SOURCE_BRANCH'..."
           git checkout -b $KMOM $SOURCE_BRANCH
-          git push --set-upstream origin $KMOM
+          git push --set-upstream origin $KMOM 2>&1 | grep -v "^remote:"
           echo "✅ Branch '$KMOM' created and checked out."
 
         fi
