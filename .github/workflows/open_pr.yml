@@ -24,7 +24,6 @@ jobs:
     with:
       course_id: ${{ vars.COURSE_ID }}
       available_assignments: ${{ vars.ASSIGNMENTS }}
-      student_id: ${{ vars.STUDENT_CANVAS_ID }}
       kmom_paths: ${{ vars.KMOM_PATHS }}
       tags: ${{ vars.TAGS }}
     secrets: inherit
