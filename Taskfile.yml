@@ -103,10 +103,10 @@ tasks:
     desc: "Download git hook files from the template repository and install them"
     cmds:
       - task: download-artifacts
-      - mkdir -p hooks
+      - mkdir -p .hooks
       - mkdir -p .git/hooks
-      - cp -a {{.ARTIFACT_TMP_FILES}}/hooks/. hooks/
-      - cp -a {{.ARTIFACT_TMP_FILES}}/hooks/. .git/hooks/
+      - cp -a {{.ARTIFACT_TMP_FILES}}/.hooks/. .hooks/
+      - cp -a {{.ARTIFACT_TMP_FILES}}/.hooks/. .git/hooks/
       - chmod +x .git/hooks/*
       - task: clear-artifacts
       - echo "Git hooks downloaded and installed successfully."
@@ -156,20 +156,24 @@ tasks:
           ERRORS=$((ERRORS + 1))
         fi
 
-        # ── Check: branch bth/submit/kmom03 exists (local or remote) ──────────
-        LOCAL_BRANCH=$(git show-ref --verify --quiet "refs/heads/bth/submit/kmom03" && echo "yes" || echo "no")
-        REMOTE_BRANCH=$(git ls-remote --heads origin "bth/submit/kmom03" 2>/dev/null | grep -c "bth/submit/kmom03" || true)
-        if [ "$LOCAL_BRANCH" = "yes" ] && [ "$REMOTE_BRANCH" -gt 0 ]; then
-          echo "✅ Branch 'bth/submit/kmom03' found locally and on remote."
-        elif [ "$LOCAL_BRANCH" = "yes" ]; then
-          echo "❌ Branch 'bth/submit/kmom03' found locally (not yet pushed to remote)."
-          echo "   Fix: git push origin bth/submit/kmom03"
-          ERRORS=$((ERRORS + 1))
-        else
-          echo "❌ Error: branch 'bth/submit/kmom03' not found locally or on remote."
-          echo "   Fix: git checkout -b bth/submit/kmom03 && git push origin bth/submit/kmom03"
-          ERRORS=$((ERRORS + 1))
-        fi
+        # ── Check: required branches exist (local or remote) ──────────────────
+        for BRANCH in "bth/submit/kmom03" "bth/submit/test-config"; do
+          LOCAL_BRANCH=$(git show-ref --verify --quiet "refs/heads/$BRANCH" && echo "yes" || echo "no")
+          REMOTE_BRANCH=$(git ls-remote --heads origin "$BRANCH" 2>/dev/null | grep -c "$BRANCH" || true)
+          if [ "$LOCAL_BRANCH" = "yes" ] && [ "$REMOTE_BRANCH" -gt 0 ]; then
+            echo "✅ Branch '$BRANCH' found locally and on remote."
+          elif [ "$LOCAL_BRANCH" = "yes" ]; then
+            echo "❌ Branch '$BRANCH' found locally (not yet pushed to remote)."
+            echo "   Fix: git push origin $BRANCH"
+            ERRORS=$((ERRORS + 1))
+          elif [ "$REMOTE_BRANCH" -gt 0 ]; then
+            echo "✅ Branch '$BRANCH' found on remote (not checked out locally)."
+          else
+            echo "❌ Error: branch '$BRANCH' not found locally or on remote."
+            echo "   Fix: git checkout -b $BRANCH && git push origin $BRANCH"
+            ERRORS=$((ERRORS + 1))
+          fi
+        done
 
         # ── Check: required files ──────────────────────────────────────────────
         [ -f .gitignore ] && echo "✅ .gitignore file found!" || { echo "❌ Error: .gitignore file not found!"; ERRORS=$((ERRORS + 1)); }
@@ -311,7 +315,6 @@ tasks:
       - task: download-ruff-config
       - task: download-workflow
       - task: download-extensions
-      - task: download-hooks
       - task: download-hooks
       - task: check-have-files
       - echo ""
