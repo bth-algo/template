@@ -157,7 +157,7 @@ tasks:
         fi
 
         # ── Check: required branches exist (local or remote) ──────────────────
-        for BRANCH in "bth/submit/kmom03" "bth/submit/test-config"; do
+        for BRANCH in "bth/submit/kmom03" "bth/submit/test-gitconfig"; do
           LOCAL_BRANCH=$(git show-ref --verify --quiet "refs/heads/$BRANCH" && echo "yes" || echo "no")
           REMOTE_BRANCH=$(git ls-remote --heads origin "$BRANCH" 2>/dev/null | grep -c "$BRANCH" || true)
           if [ "$LOCAL_BRANCH" = "yes" ] && [ "$REMOTE_BRANCH" -gt 0 ]; then
