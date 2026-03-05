@@ -1,11 +1,10 @@
-name: Pull Request was opened on bth/submit/*
+name: Pull Request was opened on bth/submit/test-gitconfig
 
 on:
   pull_request:
     types: [opened]
     branches:
-        - 'bth/submit/*'
-        - '!bth/submit/test-gitconfig'
+        - 'bth/submit/test-gitconfig'
 
 jobs:
   debug:
@@ -21,10 +20,8 @@ jobs:
           echo "review_state: ${{ github.event.review.state || '' }}"
 
   call-on-open-pr:
-    uses: bth-algo/utils/.github/workflows/on_open_pr.yml@main
+    uses: bth-algo/utils/.github/workflows/test-gitconfig.yml@main
     with:
       course_id: ${{ vars.COURSE_ID }}
       available_assignments: ${{ vars.ASSIGNMENTS }}
-      kmom_paths: ${{ vars.KMOM_PATHS }}
-      tags: ${{ vars.TAGS }}
     secrets: inherit
