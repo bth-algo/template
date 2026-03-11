@@ -18,6 +18,7 @@ jobs:
           echo "review_state: ${{ github.event.review.state || '' }}"
 
   call-decider:
+    if: github.event.pull_request.merged == false
     uses: bth-algo/utils/.github/workflows/on_close_pr.yml@main
     with:
       course_id: ${{ vars.COURSE_ID }}

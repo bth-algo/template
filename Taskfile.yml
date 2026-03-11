@@ -84,6 +84,7 @@ tasks:
   download-workflow:
     desc: "Download workflows file that checks code at pull request."
     cmds:
+      - task: download-artifacts
       - mkdir -p .github/workflows
       - cp -a {{.ARTIFACT_TMP_FILES}}/.github/workflows/. .github/workflows/
       - echo "Workflow file downloaded successfully."
@@ -147,13 +148,17 @@ tasks:
         fi
 
         # ── Check: currently on branch main ───────────────────────────────────
-        CURRENT_BRANCH=$(git branch --show-current)
-        if [ "$CURRENT_BRANCH" = "main" ]; then
-          echo "✅ Currently on branch 'main'."
+        if [ "${GITHUB_ACTIONS}" = "true" ]; then
+          echo "⏭️  Skipping branch check (running in GitHub Actions)."
         else
-          echo "❌ Error: not on branch 'main' (currently on '$CURRENT_BRANCH')."
-          echo "   Fix: git checkout main"
-          ERRORS=$((ERRORS + 1))
+          CURRENT_BRANCH=$(git branch --show-current)
+          if [ "$CURRENT_BRANCH" = "main" ]; then
+            echo "✅ Currently on branch 'main'."
+          else
+            echo "❌ Error: not on branch 'main' (currently on '$CURRENT_BRANCH')."
+            echo "   Fix: git checkout main"
+            ERRORS=$((ERRORS + 1))
+          fi
         fi
 
         # ── Check: required branches exist (local or remote) ──────────────────
@@ -178,7 +183,11 @@ tasks:
         # ── Check: required files ──────────────────────────────────────────────
         [ -f .gitignore ] && echo "✅ .gitignore file found!" || { echo "❌ Error: .gitignore file not found!"; ERRORS=$((ERRORS + 1)); }
         [ -d .github/workflows ] && echo "✅ .github/workflows directory found!" || { echo "❌ Error: .github/workflows directory not found!"; ERRORS=$((ERRORS + 1)); }
-        [ -f .git/hooks/pre-push ] && echo "✅ .git/hooks/pre-push file found!" || { echo "❌ Error: .git/hooks/pre-push file not found!"; ERRORS=$((ERRORS + 1)); }
+        if [ "${GITHUB_ACTIONS}" = "true" ]; then
+          [ -d .hooks ] && echo "✅ .hooks directory found!" || { echo "❌ Error: .hooks directory not found!"; ERRORS=$((ERRORS + 1)); }
+        else
+          [ -f .git/hooks/pre-push ] && echo "✅ .git/hooks/pre-push file found!" || { echo "❌ Error: .git/hooks/pre-push file not found!"; ERRORS=$((ERRORS + 1)); }
+        fi
         [ -d tests ] && echo "✅ tests directory found!" || { echo "❌ Error: tests directory not found!"; ERRORS=$((ERRORS + 1)); }
         [ -f .editorconfig ] && echo "✅ .editorconfig file found!" || { echo "❌ Error: .editorconfig file not found!"; ERRORS=$((ERRORS + 1)); }
         [ -f .python-version ] && echo "✅ .python-version file found!" || { echo "❌ Error: .python-version file not found!"; ERRORS=$((ERRORS + 1)); }
@@ -316,7 +325,7 @@ tasks:
       - task: download-workflow
       - task: download-extensions
       - task: download-hooks
-      - task: check-have-files
+      - task: check-repo-setup
       - echo ""
       - echo "✅ Setup complete!"
       - echo ""
