@@ -5,7 +5,7 @@ version: '3'
 silent: true
 
 vars:
-  COURSE_NAME: algo
+  COURSE_NAME: python
   ORG_NAME: bth-{{ .COURSE_NAME }}
   ARTIFACT_REPO_FILES: https://raw.githubusercontent.com/{{.ORG_NAME}}/template/refs/heads/main/
   ARTIFACT_TMP_FILES: /tmp/tmp-artifacts
@@ -16,7 +16,7 @@ tasks:
   create-src-dirs:
     desc: "Creates the src directory structure if they do not exist"
     cmds:
-      - mkdir -p src/kmom01/{convert,lab_01,practice,split_bill} src/kmom02/{marvin1,practice,practice_validation} src/kmom03/{marvin2,practice,practice_validation} src/kmom04/{marvin3,practice,practice_validation,lab_04} src/kmom05/{emissions,practice,practice_validation}
+      - mkdir -p src/kmom01/{convert,lab_01,practice,split_bill} src/kmom02/{marvin1,practice,practice_validation} src/kmom03/{marvin2,practice,practice_validation} src/kmom04/{marvin3,practice,practice_validation,lab_04} src/kmom05/{leaderboard,practice,practice_validation}
       - echo "Source directories created successfully. PS empty directories are not shown with 'git status'."
       - tree -d src
 
@@ -329,7 +329,3 @@ tasks:
       - echo ""
       - echo "✅ Setup complete!"
       - echo ""
-      - echo 'Next steps{{":"}}'
-      - echo '  1. Start your first assignment{{":"}} task start-kmom -- kmom01'
-      - echo '  2. Implement your code in src/kmom01/'
-      - echo '  3. Run tests{{":"}} task test -- kmom01'
